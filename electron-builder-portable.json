@@ -4,7 +4,7 @@
   "compression": "normal",
   "win": {
     "target": "portable",
-    "icon": "app-icon.png"
+    "icon": "app-icon.ico"
   },
   "portable": {
     "artifactName": "BPSR-Tracker-Portable.exe"

@@ -54,12 +54,16 @@ function createMainWindow() {
     },
     backgroundColor: '#1a1a2e',
     title: 'Blue Protocol Star Resonance - Boss Timer',
-    icon: path.join(__dirname, '../app-icon.png')
+    icon: path.join(__dirname, '../app-icon.ico')
   });
 
   mainWindow.loadFile(path.join(__dirname, 'windows/main/index.html'));
 
   mainWindow.on('closed', () => {
+    // Close the overlay when main window closes
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.close();
+    }
     mainWindow = null;
   });
 
@@ -89,6 +93,7 @@ function createOverlayWindow() {
     alwaysOnTop: true,
     skipTaskbar: true,
     resizable: false,
+    focusable: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -98,6 +103,20 @@ function createOverlayWindow() {
 
   overlayWindow.loadFile(path.join(__dirname, 'windows/overlay/index.html'));
   overlayWindow.setIgnoreMouseEvents(false);
+  
+  // Prevent the overlay from losing always-on-top status when clicked
+  overlayWindow.on('blur', () => {
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.setAlwaysOnTop(true, 'screen-saver');
+    }
+  });
+  
+  // Ensure overlay stays on top after focus
+  overlayWindow.on('focus', () => {
+    if (overlayWindow && !overlayWindow.isDestroyed()) {
+      overlayWindow.setAlwaysOnTop(true, 'screen-saver');
+    }
+  });
 
   overlayWindow.on('closed', () => {
     overlayWindow = null;

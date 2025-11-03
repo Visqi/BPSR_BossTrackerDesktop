@@ -47,7 +47,7 @@
       "icon": "app-icon.png"
     },
     "portable": {
-      "artifactName": "BPSR-Tracker-Portable.exe"
+      "artifactName": "BPSR Creature Tracker.exe"
     },
     "nsis": {
       "oneClick": false,
