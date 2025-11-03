@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blue Protocol Star Resonance - Boss Timer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Custom Title Bar -->
+    <div class="title-bar">
+      <div class="title-bar-left">
+        <span class="app-icon">🎮</span>
+        <span class="app-title">Blue Protocol Star Resonance</span>
+      </div>
+      <div class="title-bar-controls">
+        <button class="title-btn minimize-btn" id="minimizeBtn" title="Minimize">─</button>
+        <button class="title-btn maximize-btn" id="maximizeBtn" title="Maximize">☐</button>
+        <button class="title-btn close-btn" id="closeBtn" title="Close">✕</button>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <h1>Blue Protocol Star Resonance</h1>
+        <span class="subtitle">Boss Timer & Tracker</span>
+      </div>
+      <div class="header-right">
+        <button id="refreshBtn" class="btn btn-secondary" title="Refresh Data">
+          <span class="icon">🔄</span> Refresh
+        </button>
+        <button id="overlayBtn" class="btn btn-primary" title="Toggle Overlay">
+          <span class="icon">📌</span> <span id="overlayBtnText">Show Overlay</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Filters and Controls -->
+      <div class="controls-section">
+        <div class="filter-group">
+          <label for="mapFilter">Filter by Map:</label>
+          <select id="mapFilter" class="select-input">
+            <option value="all">All Maps</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="searchInput">Search Boss:</label>
+          <input type="text" id="searchInput" class="text-input" placeholder="Type boss name...">
+        </div>
+        <div class="status-info">
+          <span id="connectionStatus" class="status-badge status-connecting">Connecting...</span>
+          <span id="bossCount" class="info-badge">0 Bosses</span>
+        </div>
+      </div>
+
+      <!-- Event Timers Section (Hidden for now) -->
+      <section class="section" style="display: none;">
+        <div class="section-header">
+          <h2 class="section-title">⏰ Event Timers</h2>
+        </div>
+        <div id="eventTimersGrid" class="event-timers-grid">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading events...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Magical Creatures Section -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">✨ Magical Creatures</h2>
+        </div>
+        <div id="magicalCreaturesGrid" class="magical-creatures-grid">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading creatures...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- All Bosses Section -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">👹 All Bosses</h2>
+          <div class="section-actions">
+            <label class="checkbox-label">
+              <input type="checkbox" id="showOnlySubscribed">
+              <span>Show only subscribed</span>
+            </label>
+          </div>
+        </div>
+        <div id="bossGrid" class="boss-grid">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading boss data...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Credits Footer -->
+    <footer class="app-footer">
+      <div class="credits">
+        <span class="credits-label">Created by:</span>
+        <span class="credits-names">Visqi & Wohee</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

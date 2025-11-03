@@ -1,0 +1,8 @@
+// Placeholder icon file
+// Replace this with actual icon files:
+// - icon.png (for Linux)
+// - icon.ico (for Windows)
+// - icon.icns (for macOS)
+
+// Recommended sizes for icon.png: 512x512 or 1024x1024
+// You can create icons from a PNG using online tools or electron-icon-builder

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPSR Overlay</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="overlay-container">
+    <!-- Custom Title Bar (Draggable) -->
+    <div class="overlay-header" id="dragHandle">
+      <div class="header-left">
+        <span class="overlay-icon">⏰</span>
+        <span class="overlay-title">BP Boss Timers</span>
+      </div>
+      <div class="header-right">
+        <button class="header-btn settings-btn" id="settingsBtn" title="Toggle Show All/Subscribed" onclick="event.stopPropagation()">
+          <span id="filterIcon">⭐</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Compact Timer List -->
+    <div class="overlay-content">
+      <div id="overlayTimers" class="overlay-timers">
+        <div class="overlay-empty">
+          <span class="empty-icon">💤</span>
+          <p>No active timers</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer with minimal controls -->
+    <div class="overlay-footer" onclick="event.stopPropagation()">
+      <div class="opacity-control" onclick="event.stopPropagation()">
+        <span class="control-label">👁</span>
+        <input type="range" id="opacitySlider" min="30" max="100" value="95" step="5" onclick="event.stopPropagation()">
+      </div>
+      <div class="timer-count">
+        <span id="timerCount">0 timers</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

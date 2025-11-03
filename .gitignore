@@ -1,0 +1,27 @@
+# Ignore node modules
+node_modules/
+
+# Build output
+dist/
+out/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.local
+
+# Package lock (if using yarn)
+package-lock.json
+yarn.lock

@@ -1,0 +1,73 @@
+{
+  "name": "blue-protocol-star-resonance",
+  "version": "1.0.0",
+  "description": "Blue Protocol Star Resonance - Boss Timer and Overlay Tool",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:portable": "electron-builder --config electron-builder-portable.json",
+    "build:installer": "electron-builder --win nsis --config.win.target=nsis"
+  },
+  "keywords": [
+    "blue-protocol",
+    "boss-timer",
+    "overlay"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "eventsource": "^2.0.2",
+    "eventsource-polyfill": "^0.9.6"
+  },
+  "build": {
+    "appId": "com.bpsr.timer",
+    "productName": "BP Star Resonance",
+    "compression": "normal",
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "app-icon.png"
+    },
+    "portable": {
+      "artifactName": "BPSR-Tracker-Portable.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "BPSR-Tracker-Setup.exe"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "images/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "images",
+        "to": "images",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  }
+}

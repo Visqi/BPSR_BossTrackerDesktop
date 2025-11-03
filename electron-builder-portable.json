@@ -1,0 +1,25 @@
+{
+  "appId": "com.bpsr.timer",
+  "productName": "BP Star Resonance",
+  "compression": "normal",
+  "win": {
+    "target": "portable",
+    "icon": "app-icon.png"
+  },
+  "portable": {
+    "artifactName": "BPSR-Tracker-Portable.exe"
+  },
+  "files": [
+    "src/**/*",
+    "assets/**/*",
+    "images/**/*",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": "images",
+      "to": "images",
+      "filter": ["**/*"]
+    }
+  ]
+}
