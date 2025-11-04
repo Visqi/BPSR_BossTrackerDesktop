@@ -1,11 +1,18 @@
 const EventEmitter = require('events');
 const https = require('https');
 const EventSource = require('eventsource');
+const { 
+  API_BASE_URL, 
+  SSE_EVENT_TYPES, 
+  SSE_SUBSCRIPTIONS, 
+  COLLECTIONS,
+  EVENT_HANDLERS 
+} = require('../config/api-config');
 
 class APIService extends EventEmitter {
   constructor() {
     super();
-    this.baseURL = 'https://db.bptimer.com/api';
+    this.baseURL = API_BASE_URL;
     this.bossData = null;
     this.eventSource = null;
     this.channelStatusMap = new Map(); // Map of bossId_channelNumber -> channel data
@@ -246,6 +253,34 @@ class APIService extends EventEmitter {
         console.error('Error parsing mob_channel_status_sse event:', error);
       }
     });
+    
+    // NEW: Listen for mob HP updates (new API format)
+    this.eventSource.addEventListener('mob_hp_updates', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('✓ Received mob_hp_updates event:', data);
+        
+        // Data format: [mobId, channelNumber, hp]
+        if (Array.isArray(data) && data.length === 3) {
+          const [mobId, channelNumber, hp] = data;
+          console.log(`HP Update: Mob ${mobId}, Channel ${channelNumber}, HP ${hp}%`);
+          
+          // Convert to standard format
+          this.handleRealtimeEvent({
+            action: 'update',
+            collection: 'mob_channel_status',
+            record: {
+              mob: mobId,
+              channel_number: channelNumber,
+              last_hp: hp,
+              last_update: new Date().toISOString()
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing mob_hp_updates event:', error);
+      }
+    });
 
     this.eventSource.addEventListener('mobs', (event) => {
       try {
@@ -266,6 +301,29 @@ class APIService extends EventEmitter {
         this.handleRealtimeEvent(data);
       } catch (error) {
         console.error('Error parsing mob_reset_events event:', error);
+      }
+    });
+    
+    // NEW: Listen for mob reset events (new API format)
+    this.eventSource.addEventListener('mob_resets', (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log('✓ Received mob_resets event:', data);
+        
+        // Data could be mobId string or array
+        const mobId = Array.isArray(data) ? data[0] : data;
+        console.log(`Boss Reset: Mob ${mobId}`);
+        
+        // Convert to standard format
+        this.handleRealtimeEvent({
+          action: 'create',
+          collection: 'mob_reset_events',
+          record: {
+            mob: mobId
+          }
+        });
+      } catch (error) {
+        console.error('Error parsing mob_resets event:', error);
       }
     });
 
@@ -300,19 +358,13 @@ class APIService extends EventEmitter {
    * Subscribe to PocketBase collections using clientId
    */
   subscribeToCollections(clientId) {
-    // Subscribe to specific collections as per bptimer.com requirements
-    const subscriptions = [
-      "mobs/*",
-      "mob_channel_status_sse/*",
-      "mob_reset_events/*"
-    ];
-    
+    // Use centralized subscription configuration
     const postData = JSON.stringify({
       clientId: clientId,
-      subscriptions: subscriptions
+      subscriptions: SSE_SUBSCRIPTIONS
     });
     
-    console.log('Sending subscription POST:', { clientId, subscriptions });
+    console.log('Sending subscription POST:', { clientId, subscriptions: SSE_SUBSCRIPTIONS });
     
     const options = {
       hostname: 'db.bptimer.com',
@@ -371,6 +423,35 @@ class APIService extends EventEmitter {
   }
 
   /**
+   * Register all event listeners for SSE
+   */
+  registerEventListeners() {
+    if (!this.eventSource) return;
+    
+    console.log('Registering event listeners for:', Object.keys(EVENT_HANDLERS));
+    
+    // Dynamically register event listeners for all configured event types
+    Object.entries(EVENT_HANDLERS).forEach(([eventType, handler]) => {
+      this.eventSource.addEventListener(eventType, (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log(`✓ Received ${eventType} event:`, data);
+          
+          // Use the handler's parse function to transform the data
+          const parsedData = handler.parse(data);
+          
+          if (parsedData) {
+            console.log(`✓ Handling ${eventType}:`, parsedData);
+            this.handleRealtimeEvent(parsedData);
+          }
+        } catch (error) {
+          console.error(`Error parsing ${eventType} event:`, error);
+        }
+      });
+    });
+  }
+
+  /**
    * Handle realtime SSE events
    */
   handleRealtimeEvent(data) {
@@ -383,15 +464,16 @@ class APIService extends EventEmitter {
     console.log(`📦 Handling event: collection=${collection}, action=${action}`);
 
     // Handle mob_channel_status_sse updates (the SSE-specific collection)
-    if (collection === 'mob_channel_status_sse') {
+    // Also handle mob_channel_status (new format from mob_hp_updates)
+    if (collection === COLLECTIONS.MOB_CHANNEL_STATUS_SSE || collection === COLLECTIONS.MOB_CHANNEL_STATUS) {
       this.handleChannelStatusUpdate(action, record);
     }
     // Handle mob updates
-    else if (collection === 'mobs') {
+    else if (collection === COLLECTIONS.MOBS) {
       this.handleBossUpdate(action, record);
     }
     // Handle reset events
-    else if (collection === 'mob_reset_events') {
+    else if (collection === COLLECTIONS.MOB_RESET_EVENTS) {
       this.handleResetEvent(action, record);
     }
     else {

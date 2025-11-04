@@ -1,12 +1,20 @@
 // ============ REALTIME SSE CONNECTION ============
 // Browser-native EventSource for PocketBase realtime updates
 
+// Access config from window object (set by api-config.js)
+const { 
+  API_BASE_URL, 
+  SSE_EVENT_TYPES, 
+  SSE_SUBSCRIPTIONS, 
+  EVENT_HANDLERS 
+} = window.API_CONFIG;
+
 let eventSource = null;
 
 export function connectRealtimeSSE() {
   console.log('🔌 Connecting to PocketBase realtime SSE...');
   
-  const realtimeURL = 'https://db.bptimer.com/api/realtime';
+  const realtimeURL = `${API_BASE_URL}/realtime`;
   eventSource = new EventSource(realtimeURL);
   
   eventSource.onopen = () => {
@@ -34,6 +42,30 @@ export function connectRealtimeSSE() {
     subscribeToCollections(data.clientId);
   });
   
+  // Dynamically register event listeners for all configured event types
+  Object.entries(EVENT_HANDLERS).forEach(([eventType, handler]) => {
+    eventSource.addEventListener(eventType, (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log(`🔄 ${eventType} event:`, data);
+        
+        // Use the handler's parse function to transform the data
+        const parsedData = handler.parse(data);
+        
+        if (parsedData) {
+          console.log(`✓ Parsed ${eventType}:`, parsedData);
+          
+          // Dispatch as custom event for renderer to handle
+          window.dispatchEvent(new CustomEvent('realtime-update', { 
+            detail: parsedData
+          }));
+        }
+      } catch (error) {
+        console.error(`Error parsing ${eventType} event:`, error);
+      }
+    });
+  });
+  
   // Generic message handler - catches ALL realtime events
   eventSource.onmessage = (event) => {
     try {
@@ -55,22 +87,17 @@ export function connectRealtimeSSE() {
 }
 
 function subscribeToCollections(clientId) {
-  const subscriptions = [
-    "mobs/*",
-    "mob_channel_status_sse/*",
-    "mob_reset_events/*"
-  ];
+  // Use centralized subscription configuration
+  console.log('📤 Sending subscription POST with:', SSE_SUBSCRIPTIONS);
   
-  console.log('📤 Sending subscription POST...');
-  
-  fetch('https://db.bptimer.com/api/realtime', {
+  fetch(`${API_BASE_URL}/realtime`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       clientId: clientId,
-      subscriptions: subscriptions
+      subscriptions: SSE_SUBSCRIPTIONS
     })
   })
   .then(res => {
@@ -79,7 +106,7 @@ function subscribeToCollections(clientId) {
   })
   .then(data => {
     console.log('✓ Subscription confirmed');
-    console.log('✓ Now listening for realtime events...');
+    console.log('✓ Now listening for realtime events:', SSE_SUBSCRIPTIONS);
   })
   .catch(error => {
     console.error('❌ Subscription error:', error);

@@ -1199,9 +1199,10 @@ async function connectRealtimeSSE() {
 
 function subscribeToCollections(clientId) {
   const subscriptions = [
-    'mobs/*',
-    'mob_channel_status_sse/*',
-    'mob_reset_events/*'
+   // 'mobs/*',
+   // 'mob_channel_status_sse/*',
+   // 'mob_reset_events/*'
+   "mob_hp_updates", "mob_resets"
   ];
   
   console.log('📤 Sending subscription POST with clientId:', clientId);
@@ -1327,5 +1328,128 @@ function updateSingleChannelPill(bossId, channelNumber, hp) {
     }
   });
 }
+
+// ============ AUTO-UPDATE FUNCTIONALITY ============
+
+// UI Elements
+const versionInfo = document.getElementById('versionInfo');
+const checkUpdateBtn = document.getElementById('checkUpdateBtn');
+const updateNotification = document.getElementById('updateNotification');
+const closeUpdateNotification = document.getElementById('closeUpdateNotification');
+const updateTitle = document.getElementById('updateTitle');
+const updateMessage = document.getElementById('updateMessage');
+const updateProgress = document.getElementById('updateProgress');
+const progressFill = document.getElementById('progressFill');
+const progressText = document.getElementById('progressText');
+
+// Load and display app version
+async function loadAppVersion() {
+  try {
+    const version = await window.electronAPI.getAppVersion();
+    if (versionInfo) {
+      versionInfo.textContent = `v${version}`;
+    }
+  } catch (error) {
+    console.error('Error loading app version:', error);
+  }
+}
+
+// Show update notification
+function showUpdateNotification(title, message, showProgress = false) {
+  if (updateNotification) {
+    updateTitle.textContent = title;
+    updateMessage.textContent = message;
+    updateProgress.classList.toggle('hidden', !showProgress);
+    updateNotification.classList.remove('hidden');
+  }
+}
+
+// Hide update notification
+function hideUpdateNotification() {
+  if (updateNotification) {
+    updateNotification.classList.add('hidden');
+  }
+}
+
+// Update progress bar
+function setUpdateProgress(percent) {
+  if (progressFill && progressText) {
+    progressFill.style.width = `${percent}%`;
+    progressText.textContent = `${percent}%`;
+  }
+}
+
+// Event Listeners
+if (checkUpdateBtn) {
+  checkUpdateBtn.addEventListener('click', async () => {
+    try {
+      await window.electronAPI.checkForUpdates();
+    } catch (error) {
+      console.error('Error checking for updates:', error);
+    }
+  });
+}
+
+if (closeUpdateNotification) {
+  closeUpdateNotification.addEventListener('click', hideUpdateNotification);
+}
+
+// Listen for update events
+window.electronAPI.onUpdateAvailable((info) => {
+  console.log('Update available:', info);
+  showUpdateNotification(
+    'Update Available',
+    `Version ${info.version} is available. Click to download.`,
+    false
+  );
+});
+
+window.electronAPI.onUpdateDownloading(() => {
+  console.log('Update downloading...');
+  showUpdateNotification(
+    'Downloading Update',
+    'Downloading the latest version...',
+    true
+  );
+  setUpdateProgress(0);
+});
+
+window.electronAPI.onUpdateDownloadProgress((progressInfo) => {
+  console.log('Download progress:', progressInfo.percent);
+  setUpdateProgress(progressInfo.percent);
+  updateMessage.textContent = `Downloading... ${progressInfo.percent}%`;
+});
+
+window.electronAPI.onUpdateDownloaded((info) => {
+  console.log('Update downloaded:', info);
+  showUpdateNotification(
+    'Update Ready',
+    `Version ${info.version} has been downloaded. Restart to install.`,
+    false
+  );
+  
+  // Auto-hide after 10 seconds
+  setTimeout(() => {
+    hideUpdateNotification();
+  }, 10000);
+});
+
+window.electronAPI.onUpdateError((error) => {
+  console.error('Update error:', error);
+  showUpdateNotification(
+    'Update Error',
+    `Failed to update: ${error.message}`,
+    false
+  );
+  
+  // Auto-hide after 5 seconds
+  setTimeout(() => {
+    hideUpdateNotification();
+  }, 5000);
+});
+
+// Initialize version display
+loadAppVersion();
+
 
 

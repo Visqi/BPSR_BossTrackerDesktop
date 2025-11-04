@@ -2,10 +2,12 @@ const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const APIService = require('./services/api-service');
+const AutoUpdater = require('./utils/auto-updater');
 
 let mainWindow = null;
 let overlayWindow = null;
 let apiService = null;
+let autoUpdater = null;
 
 // AppData storage paths
 const userDataPath = app.getPath('userData');
@@ -134,6 +136,14 @@ app.whenReady().then(() => {
   
   // Create main window
   createMainWindow();
+  
+  // Initialize auto-updater (only in production)
+  if (!process.argv.includes('--dev') && process.env.NODE_ENV !== 'development') {
+    autoUpdater = new AutoUpdater(mainWindow);
+    console.log('Auto-updater initialized');
+  } else {
+    console.log('Auto-updater disabled in development mode');
+  }
   
   // Load boss data
   // Note: Realtime SSE connection is now handled in the renderer process
@@ -356,6 +366,34 @@ ipcMain.handle('get-subscribed-bosses', () => {
 
 ipcMain.handle('is-boss-subscribed', (event, bossId) => {
   return (appSettings.subscribedBosses || []).includes(bossId);
+});
+
+// Auto-updater IPC handlers
+ipcMain.handle('check-for-updates', async () => {
+  if (autoUpdater) {
+    return await autoUpdater.manualCheckForUpdates();
+  }
+  return null;
+});
+
+ipcMain.handle('download-update', () => {
+  if (autoUpdater) {
+    autoUpdater.downloadUpdate();
+    return true;
+  }
+  return false;
+});
+
+ipcMain.handle('install-update', () => {
+  if (autoUpdater) {
+    autoUpdater.quitAndInstall();
+    return true;
+  }
+  return false;
+});
+
+ipcMain.handle('get-app-version', () => {
+  return app.getVersion();
 });
 
 // Send notifications for subscribed bosses with low HP channels

@@ -22,6 +22,7 @@
     "electron-builder": "^24.9.1"
   },
   "dependencies": {
+    "electron-updater": "^6.6.2",
     "eventsource": "^2.0.2",
     "eventsource-polyfill": "^0.9.6"
   },
@@ -29,6 +30,12 @@
     "appId": "com.bpsr.timer",
     "productName": "BP Star Resonance",
     "compression": "normal",
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://yourdomain.com/updates"
+      }
+    ],
     "win": {
       "target": [
         {
