@@ -4,14 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.2] - 2025-11-04
+
+### Changed
+- Updates on Auto Update and Setup
+
+### Fixed
+- Portable Version Auto Update now gives an Info to the Github instead of an error
+
 ## [1.0.1] - 2025-11-04
 
 ### Fixed
 - Portable executable filename (removed spaces for better compatibility)
 - GitHub Actions workflow now correctly uploads portable version to releases
+- Auto-updater error when running portable build (ENOENT: app-update.yml)
 
 ### Changed
 - Portable artifact name changed from `BPSR Creature Tracker.exe` to `BPSR-Tracker-Portable.exe`
+- Auto-updates are now only enabled for installer builds
+- Portable builds show a friendly message when checking for updates, directing users to GitHub releases
+
+### Added
+- Automatic detection of portable vs installer builds
+- User-friendly messaging for portable build limitations
 
 ## [1.0.0] - 2025-11-04
 

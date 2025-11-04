@@ -1,6 +1,6 @@
 {
   "name": "blue-protocol-star-resonance",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Blue Protocol Star Resonance - Boss Timer and Overlay Tool",
   "main": "src/main.js",
   "scripts": {
@@ -30,8 +30,8 @@
     "eventsource-polyfill": "^0.9.6"
   },
   "build": {
-    "appId": "com.bpsr.timer",
-    "productName": "BP Star Resonance",
+    "appId": "com.visqi.bpsrtracker",
+    "productName": "BPSR Boss Tracker",
     "compression": "normal",
     "publish": [
       {

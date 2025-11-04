@@ -30,9 +30,11 @@ A real-time boss tracking overlay application for Blue Protocol: Star Resonance,
 1. Download the latest release from the [Releases](../../releases) page
 2. Choose your preferred format:
    - **Portable**: `BPSR-Tracker-Portable.exe` - No installation required, runs standalone
-   - **Installer**: `BPSR-Tracker-Setup.exe` - Traditional Windows installer
+   - **Installer**: `BPSR-Tracker-Setup.exe` - Traditional Windows installer with auto-update support
 
-**Note**: New versions are automatically built and released when updates are pushed to the main branch. The portable version includes auto-update functionality.
+**Important Notes**:
+- **Auto-Updates**: Only the **installer version** supports automatic updates. The portable version requires manual downloads for updates.
+- New versions are automatically built and released when updates are pushed to the main branch.
 
 ### From Source
 

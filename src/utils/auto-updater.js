@@ -1,15 +1,31 @@
 const { autoUpdater } = require('electron-updater');
 const { dialog, app } = require('electron');
+const path = require('path');
+const fs = require('fs');
 
 class AutoUpdater {
   constructor(mainWindow) {
     this.mainWindow = mainWindow;
     this.updateAvailable = false;
+    this.isPortable = this.checkIfPortable();
     
-    // Enable auto-updates for all builds (including portable)
-    console.log('Auto-updater initialized for all build types');
+    if (this.isPortable) {
+      console.log('Portable build detected - Auto-updates are not supported for portable executables');
+      console.log('Please download new versions manually from GitHub releases');
+      return;
+    }
     
+    console.log('Auto-updater initialized for installer build');
     this.setupAutoUpdater();
+  }
+
+  checkIfPortable() {
+    // Check if app-update.yml exists (only present in NSIS installs)
+    const updateYmlPath = path.join(process.resourcesPath, 'app-update.yml');
+    const exists = fs.existsSync(updateYmlPath);
+    
+    // If app-update.yml doesn't exist, this is a portable build
+    return !exists;
   }
 
   setupAutoUpdater() {
@@ -91,6 +107,11 @@ class AutoUpdater {
   }
 
   async checkForUpdates() {
+    if (this.isPortable) {
+      console.log('Skipping update check - portable build');
+      return;
+    }
+    
     try {
       console.log('Checking for updates...');
       await autoUpdater.checkForUpdates();
@@ -142,6 +163,17 @@ class AutoUpdater {
 
   // Manual check triggered by user
   async manualCheckForUpdates() {
+    if (this.isPortable) {
+      // Show portable build message
+      dialog.showMessageBox(this.mainWindow, {
+        type: 'info',
+        title: 'Portable Build',
+        message: 'Auto-updates are not available for portable builds',
+        detail: `Current version: ${require('electron').app.getVersion()}\n\nPlease download new versions manually from:\nhttps://github.com/Visqi/BPSR_BossTrackerDesktop/releases`
+      });
+      return null;
+    }
+    
     try {
       console.log('Manual update check triggered');
       const result = await autoUpdater.checkForUpdates();
@@ -170,10 +202,18 @@ class AutoUpdater {
   }
 
   downloadUpdate() {
+    if (this.isPortable) {
+      console.log('Skipping download - portable build');
+      return;
+    }
     autoUpdater.downloadUpdate();
   }
 
   quitAndInstall() {
+    if (this.isPortable) {
+      console.log('Skipping install - portable build');
+      return;
+    }
     autoUpdater.quitAndInstall(false, true);
   }
 }

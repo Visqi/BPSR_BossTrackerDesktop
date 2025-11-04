@@ -1,6 +1,6 @@
 {
-  "appId": "com.bpsr.timer",
-  "productName": "BP Star Resonance",
+  "appId": "com.visqi.bpsrtracker",
+  "productName": "BPSR Boss Tracker",
   "compression": "normal",
   "win": {
     "target": "portable",
