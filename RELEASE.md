@@ -154,7 +154,7 @@ If you need to create a release without the workflow:
     "publish": [{
       "provider": "github",
       "owner": "Visqi",
-      "repo": "bpsr_bptimer_desktop"
+      "repo": "BPSR_BossTrackerDesktop"
     }]
   }
 }

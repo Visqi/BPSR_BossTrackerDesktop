@@ -7,8 +7,8 @@ Thank you for your interest in contributing to the Blue Protocol Star Resonance 
 1. Fork the repository
 2. Clone your fork:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/bpsr_bptimer_desktop.git
-   cd bpsr_bptimer_desktop
+   git clone https://github.com/YOUR_USERNAME/BPSR_BossTrackerDesktop.git
+   cd BPSR_BossTrackerDesktop
    ```
 3. Install dependencies:
    ```bash

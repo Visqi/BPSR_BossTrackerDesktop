@@ -5,7 +5,7 @@ A real-time boss tracking overlay application for Blue Protocol: Star Resonance,
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Electron](https://img.shields.io/badge/electron-28.0.0-47848f)
-[![Build and Release](https://github.com/Visqi/bpsr_bptimer_desktop/actions/workflows/build-release.yml/badge.svg)](https://github.com/Visqi/bpsr_bptimer_desktop/actions/workflows/build-release.yml)
+[![Build and Release](https://github.com/Visqi/BPSR_BossTrackerDesktop/actions/workflows/build-release.yml/badge.svg)](https://github.com/Visqi/BPSR_BossTrackerDesktop/actions/workflows/build-release.yml)
 
 ## 🎮 Features
 
@@ -38,8 +38,8 @@ A real-time boss tracking overlay application for Blue Protocol: Star Resonance,
 
 ```bash
 # Clone the repository
-git clone https://github.com/Visqi/bpsr_bptimer_desktop.git
-cd bpsr_bptimer_desktop
+git clone https://github.com/Visqi/BPSR_BossTrackerDesktop.git
+cd BPSR_BossTrackerDesktop
 
 # Install dependencies
 npm install
@@ -79,7 +79,7 @@ npm run build:installer
 ## 🏗️ Project Structure
 
 ```
-bpsr_bptimer_desktop/
+BPSR_BossTrackerDesktop/
 ├── src/
 │   ├── main.js              # Main process (Electron)
 │   ├── preload.js           # Preload script (IPC bridge)
