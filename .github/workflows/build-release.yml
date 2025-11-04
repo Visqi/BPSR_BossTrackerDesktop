@@ -61,7 +61,7 @@ jobs:
             ## BPSR Creature Tracker v${{ steps.package-version.outputs.version }}
             
             ### Downloads
-            - **Portable**: `BPSR-Creature-Tracker.exe` - No installation required
+            - **Portable**: `BPSR-Tracker-Portable.exe` - No installation required
             - **Installer**: `BPSR-Tracker-Setup.exe` - Traditional Windows installer
             
             ### Auto-Update
@@ -70,6 +70,6 @@ jobs:
             ### Changelog
             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
           files: |
-            ./dist/BPSR Creature Tracker.exe
-            ./dist/BPSR-Tracker-Setup.exe
-            ./dist/latest.yml
+            dist/BPSR-Tracker-Portable.exe
+            dist/BPSR-Tracker-Setup.exe
+            dist/latest.yml

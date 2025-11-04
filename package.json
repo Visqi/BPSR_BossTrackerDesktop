@@ -1,6 +1,6 @@
 {
   "name": "blue-protocol-star-resonance",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Blue Protocol Star Resonance - Boss Timer and Overlay Tool",
   "main": "src/main.js",
   "scripts": {
@@ -58,7 +58,7 @@
       "icon": "app-icon.png"
     },
     "portable": {
-      "artifactName": "BPSR Creature Tracker.exe"
+      "artifactName": "BPSR-Tracker-Portable.exe"
     },
     "nsis": {
       "oneClick": false,

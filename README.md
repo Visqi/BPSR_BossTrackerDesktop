@@ -29,7 +29,7 @@ A real-time boss tracking overlay application for Blue Protocol: Star Resonance,
 
 1. Download the latest release from the [Releases](../../releases) page
 2. Choose your preferred format:
-   - **Portable**: `BPSR-Creature-Tracker.exe` - No installation required, runs standalone
+   - **Portable**: `BPSR-Tracker-Portable.exe` - No installation required, runs standalone
    - **Installer**: `BPSR-Tracker-Setup.exe` - Traditional Windows installer
 
 **Note**: New versions are automatically built and released when updates are pushed to the main branch. The portable version includes auto-update functionality.
@@ -154,7 +154,7 @@ npm run build
 ### Build Output
 
 Built files are located in `dist/`:
-- `BPSR Creature Tracker.exe` - Portable executable
+- `BPSR-Creature-Tracker.exe` - Portable executable
 - `BPSR-Tracker-Setup.exe` - NSIS installer
 
 ## � Releases & Versioning
