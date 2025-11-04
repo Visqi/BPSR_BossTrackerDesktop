@@ -42,19 +42,19 @@ jobs:
 
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ steps.package-version.outputs.version }}
-          release_name: Release v${{ steps.package-version.outputs.version }}
+          name: Release v${{ steps.package-version.outputs.version }}
           draft: false
           prerelease: false
           body: |
             ## BPSR Creature Tracker v${{ steps.package-version.outputs.version }}
             
             ### Downloads
-            - **Portable**: `BPSR Creature Tracker.exe` - No installation required
+            - **Portable**: `BPSR-Creature-Tracker.exe` - No installation required
             - **Installer**: `BPSR-Tracker-Setup.exe` - Traditional Windows installer
             
             ### Auto-Update
@@ -62,33 +62,7 @@ jobs:
             
             ### Changelog
             See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
-
-      - name: Upload Portable Executable
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/BPSR Creature Tracker.exe
-          asset_name: BPSR-Creature-Tracker.exe
-          asset_content_type: application/octet-stream
-
-      - name: Upload Installer
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/BPSR-Tracker-Setup.exe
-          asset_name: BPSR-Tracker-Setup.exe
-          asset_content_type: application/octet-stream
-
-      - name: Upload latest.yml (for auto-updater)
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dist/latest.yml
-          asset_name: latest.yml
-          asset_content_type: text/yaml
+          files: |
+            ./dist/BPSR Creature Tracker.exe
+            ./dist/BPSR-Tracker-Setup.exe
+            ./dist/latest.yml
