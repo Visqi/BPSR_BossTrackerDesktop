@@ -1,197 +1,216 @@
-# Blue Protocol Star Resonance - Boss Timer & Overlay
+# Blue Protocol Star Resonance - Boss Tracker
 
-A desktop application built with Electron for tracking Blue Protocol boss spawns and displaying real-time timers with an in-game overlay.
+A real-time boss tracking overlay application for Blue Protocol: Star Resonance, featuring live HP updates, channel monitoring, and an always-on-top overlay for in-game use.
 
-## Features
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Electron](https://img.shields.io/badge/electron-28.0.0-47848f)
+[![Build and Release](https://github.com/Visqi/bpsr_bptimer_desktop/actions/workflows/build-release.yml/badge.svg)](https://github.com/Visqi/bpsr_bptimer_desktop/actions/workflows/build-release.yml)
 
-- ⏰ **Real-time Boss Timers** - Track active boss respawn timers across all channels
-- 📊 **Complete Boss Database** - View all bosses with their maps and respawn times
-- 🎮 **In-Game Overlay** - Transparent, draggable overlay to show timers while playing
-- 🔄 **Live Updates** - Real-time synchronization with bptimer.com via Server-Sent Events
-- 🗺️ **Map Filtering** - Filter bosses by map location
-- 🔍 **Boss Search** - Quickly find specific bosses
-- 🎨 **Beautiful UI** - Modern, responsive interface with smooth animations
+## 🎮 Features
 
-## Screenshots
+- **Real-time Boss Tracking**: Live HP updates for all boss channels via Server-Sent Events (SSE)
+- **Always-On-Top Overlay**: Translucent, click-through overlay perfect for in-game monitoring
+- **Channel Status Monitoring**: Track up to 200 channels per boss with color-coded HP indicators
+- **Boss Subscriptions**: Subscribe to specific bosses and get desktop notifications for low HP
+- **Auto-Updates**: Automatic application updates with download progress tracking
+- **Magical Creatures Support**: Track special magical creatures with separate UI
+- **Customizable Display**: Filter bosses, search functionality, and collapsible channel details
+
+## 📋 Requirements
+
+- Windows 10/11 (64-bit)
+- Internet connection for real-time updates
+- ~100MB disk space
+
+## 🚀 Installation
+
+### Pre-built Releases
+
+1. Download the latest release from the [Releases](../../releases) page
+2. Choose your preferred format:
+   - **Portable**: `BPSR-Creature-Tracker.exe` - No installation required, runs standalone
+   - **Installer**: `BPSR-Tracker-Setup.exe` - Traditional Windows installer
+
+**Note**: New versions are automatically built and released when updates are pushed to the main branch. The portable version includes auto-update functionality.
+
+### From Source
+
+```bash
+# Clone the repository
+git clone https://github.com/Visqi/bpsr_bptimer_desktop.git
+cd bpsr_bptimer_desktop
+
+# Install dependencies
+npm install
+
+# Run in development mode
+npm run dev
+
+# Build portable executable
+npm run build:portable
+
+# Build installer
+npm run build:installer
+```
+
+## 🎯 Usage
 
 ### Main Window
-The main window displays all bosses and active timers with filtering options.
+
+1. **Browse Bosses**: View all available bosses with their current channel status
+2. **Subscribe to Bosses**: Click the bell icon to receive notifications when HP is low
+3. **View Channel Details**: Click "Show Channels" to see detailed HP for all 200 channels
+4. **Search**: Use the search bar to filter bosses by name
+5. **Filter**: Toggle between "All Bosses", "Subscribed", and "Magical Creatures"
 
 ### Overlay Window
-A transparent, draggable overlay that sits on top of your game showing the most urgent timers.
 
-## Installation
+1. Click **"Show Overlay"** to launch the always-on-top overlay
+2. The overlay displays subscribed bosses with their lowest HP channels
+3. The overlay remains visible over other applications (including games)
+4. Position the overlay anywhere on your screen - position is saved automatically
 
-### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
+### Keyboard Shortcuts
 
-### Steps
+- `Ctrl+R` - Refresh data
+- Click overlay to interact, click outside to make it click-through
 
-1. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Run in Development Mode**
-   ```bash
-   npm start
-   ```
-   
-   Or with DevTools enabled:
-   ```bash
-   npm run dev
-   ```
-
-3. **Build for Production**
-   ```bash
-   npm run build
-   ```
-   
-   This will create an installer in the `dist` folder.
-
-## Usage
-
-### Main Window Controls
-
-- **Show/Hide Overlay** - Toggle the in-game overlay on/off
-- **Refresh** - Manually refresh boss data from the API
-- **Map Filter** - Filter bosses by their map location
-- **Search** - Type to search for specific bosses
-
-### Overlay Controls
-
-- **Drag** - Click and drag the header to reposition the overlay
-- **Opacity Slider** - Adjust the overlay transparency (30-100%)
-- **Close Button** - Click the X to close the overlay
-
-### Timer States
-
-Timers are color-coded by urgency:
-- 🔴 **Critical** (< 3 min) - Red with pulsing animation
-- 🟡 **Urgent** (3-5 min) - Orange/yellow highlight
-- 🟢 **Soon** (5-10 min) - Yellow border
-- ⚪ **Normal** (> 10 min) - Default purple/blue
-
-## API Endpoints Used
-
-The app connects to the following bptimer.com API endpoints:
-
-1. **Boss Data**
-   ```
-   GET https://db.bptimer.com/api/collections/mobs/records
-   ```
-   Fetches all boss information including names, maps, and respawn times.
-
-2. **Real-time Updates**
-   ```
-   SSE https://db.bptimer.com/api/realtime
-   ```
-   Server-Sent Events stream for live updates on:
-   - Boss kills and respawns
-   - Channel status changes
-   - Reset events
-
-## Project Structure
+## 🏗️ Project Structure
 
 ```
-blue-protocol-star-resonance/
+bpsr_bptimer_desktop/
 ├── src/
-│   ├── main.js                 # Electron main process
-│   ├── preload.js              # Preload script for IPC
+│   ├── main.js              # Main process (Electron)
+│   ├── preload.js           # Preload script (IPC bridge)
+│   ├── config/
+│   │   └── api-config.js    # Centralized API configuration
 │   ├── services/
-│   │   └── api-service.js      # API service layer
+│   │   └── api-service.js   # API service for data fetching
+│   ├── utils/
+│   │   ├── auto-updater.js  # Auto-update functionality
+│   │   ├── event-timers.js  # Boss timer calculations
+│   │   └── magical-creatures.js # Magical creature definitions
 │   └── windows/
-│       ├── main/               # Main window
+│       ├── main/            # Main window (boss list)
 │       │   ├── index.html
 │       │   ├── renderer.js
 │       │   └── styles.css
-│       └── overlay/            # Overlay window
+│       └── overlay/         # Overlay window
 │           ├── index.html
 │           ├── renderer.js
 │           └── styles.css
-├── assets/                     # Icons and images
+├── assets/                  # Application icons
 ├── package.json
 └── README.md
 ```
 
-## Technologies Used
+## 🤖 Development Notes
 
-- **Electron** - Desktop application framework
-- **Node.js** - JavaScript runtime
-- **EventSource** - Server-Sent Events client
-- **HTML/CSS/JavaScript** - Frontend technologies
+This project was developed with **AI assistance** using GitHub Copilot and Claude, but includes **significant manual coding and customization**. The architecture, real-time update system, overlay functionality, and API integration were designed and refined through a combination of AI-generated code and manual development.
 
-## Data Source
+### Technologies Used
 
-All data is sourced from [bptimer.com](https://bptimer.com/), a community-driven Blue Protocol boss timer website.
+- **Electron 28**: Desktop application framework
+- **Server-Sent Events (SSE)**: Real-time data streaming from PocketBase
+- **electron-updater**: Automatic application updates
+- **Vanilla JavaScript**: No framework dependencies for lightweight performance
+- **CSS Grid/Flexbox**: Modern responsive layouts
 
-## Features Breakdown
+### Key Implementation Details
 
-### Main Window
-- Displays all bosses with their information
-- Shows active timers in a grid layout
-- Filters by map and search
-- Connection status indicator
-- Refresh button for manual updates
+- **Dual Process Architecture**: Main process handles data/API, renderer handles UI
+- **Real-time Updates**: SSE connection with automatic reconnection
+- **Centralized Configuration**: Single source of truth for API events in `api-config.js`
+- **Channel Status Calculation**: Smart HP-based status (alive/dead/critical) with time-based staleness
+- **Overlay Window**: Always-on-top, click-through window using `screen-saver` level
 
-### Overlay Window
-- Transparent background with blur effect
-- Always on top of other windows
-- Draggable positioning
-- Adjustable opacity
-- Shows up to 8 most urgent timers
-- Auto-updates every second
-- Color-coded urgency levels
+## 🛠️ Building from Source
 
-### API Service
-- Fetches boss data on startup
-- Establishes SSE connection for real-time updates
-- Handles reconnection on connection loss
-- Parses and emits events for:
-  - Boss updates (create, update, delete)
-  - Channel status changes
-  - Reset events
-- Maintains state for bosses and channel statuses
+### Prerequisites
 
-## Troubleshooting
+```bash
+npm install
+```
 
-### Overlay not showing
-- Make sure you clicked "Show Overlay" in the main window
-- The overlay might be off-screen, close and reopen it
+### Build Commands
 
-### Connection issues
-- Check your internet connection
-- The API might be temporarily down
-- Click Refresh to retry the connection
+```bash
+# Development mode with hot reload
+npm run dev
 
-### Boss data not loading
-- Click the Refresh button
-- Check if bptimer.com is accessible
+# Build portable executable (no installation needed)
+npm run build:portable
+
+# Build NSIS installer
+npm run build:installer
+
+# Build both formats
+npm run build
+```
+
+### Build Output
+
+Built files are located in `dist/`:
+- `BPSR Creature Tracker.exe` - Portable executable
+- `BPSR-Tracker-Setup.exe` - NSIS installer
+
+## � Releases & Versioning
+
+This project uses automated releases via GitHub Actions:
+
+- **Automatic Builds**: Every push to `main` triggers a new build
+- **Versioning**: Update `version` in `package.json` to create a new release
+- **Auto-Updates**: Portable version automatically checks for updates on launch
+
+For more details, see [RELEASE.md](RELEASE.md).
+
+## �🐛 Troubleshooting
+
+### Application Won't Start
+- Ensure you have a stable internet connection
+- Check if Windows Defender or antivirus is blocking the application
+- Try running as administrator
+
+### Overlay Not Showing
+- Click "Show Overlay" button in the main window
+- Check if overlay is hidden behind other windows
 - Restart the application
 
-## Development
+### No Real-time Updates
+- Check your internet connection
+- The application connects to `db.bptimer.com` - ensure it's not blocked by firewall
+- Check the console for connection errors (Developer Tools: `Ctrl+Shift+I`)
 
-### Running in Dev Mode
-```bash
-npm run dev
-```
-This opens DevTools for both windows automatically.
+### Auto-Update Issues
+- Ensure you have write permissions in the application directory
+- For portable builds, the app must be in a writable location
+- Check network connection for downloading updates
 
-### Project Commands
-- `npm start` - Run the app
-- `npm run dev` - Run with DevTools
-- `npm run build` - Build for production
+## 📝 License
 
-## License
+MIT License - see [LICENSE](LICENSE) file for details
 
-MIT License
+## 🤝 Contributing
 
-## Credits
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-- Data provided by [bptimer.com](https://bptimer.com/)
-- Built for the Blue Protocol community
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## Disclaimer
+## 📧 Contact
 
-This is an independent fan-made tool and is not affiliated with or endorsed by Bandai Namco or the Blue Protocol development team. This tool does not inject code into the game or modify game files in any way.
+For questions, issues, or suggestions, please open an issue on GitHub.
+
+## 🙏 Acknowledgments
+
+- **BPTimer API**: Real-time boss data provided by BPTimer
+- **Blue Protocol Community**: For feedback and testing
+- **AI Assistance**: Developed with GitHub Copilot and Claude AI, with manual coding and refinement
+
+---
+
+**Disclaimer**: This is a fan-made tool and is not affiliated with or endorsed by Bandai Namco or the Blue Protocol development team.

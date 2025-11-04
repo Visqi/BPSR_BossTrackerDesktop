@@ -32,8 +32,9 @@
     "compression": "normal",
     "publish": [
       {
-        "provider": "generic",
-        "url": "https://bpsr.goobiverse.com/updates"
+        "provider": "github",
+        "owner": "Visqi",
+        "repo": "bpsr_bptimer_desktop"
       }
     ],
     "win": {
