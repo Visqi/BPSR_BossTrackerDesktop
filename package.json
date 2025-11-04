@@ -6,9 +6,12 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
-    "build": "electron-builder",
-    "build:portable": "electron-builder --config electron-builder-portable.json",
-    "build:installer": "electron-builder --win nsis --config.win.target=nsis"
+    "build": "electron-builder --publish never",
+    "build:portable": "electron-builder --config electron-builder-portable.json --publish never",
+    "build:installer": "electron-builder --win nsis --config.win.target=nsis --publish never",
+    "build:publish": "electron-builder",
+    "build:portable:publish": "electron-builder --config electron-builder-portable.json",
+    "build:installer:publish": "electron-builder --win nsis --config.win.target=nsis"
   },
   "keywords": [
     "blue-protocol",

@@ -106,11 +106,29 @@ Before pushing to main, always:
 
 ## Troubleshooting
 
+### GH_TOKEN Error
+
+If you see `"GitHub Personal Access Token is not set"` error:
+
+**This is a LOCAL build issue** - The error occurs when running `npm run build` locally because electron-builder tries to publish. This is normal and expected.
+
+**Solution**: The error does NOT affect GitHub Actions builds. GitHub Actions automatically has the `GITHUB_TOKEN` and will work correctly.
+
+To build locally without publishing:
+```bash
+# Build without attempting to publish
+npm run build:portable -- --publish never
+npm run build:installer -- --publish never
+```
+
+Or simply ignore the error - the build still completes successfully locally!
+
 ### Release Not Created
 
 - Check GitHub Actions logs in the "Actions" tab
 - Ensure the version in `package.json` is different from the last release
 - Verify you have push access to the repository
+- Check that the workflow has `permissions: contents: write` (already configured)
 
 ### Auto-Update Not Working
 

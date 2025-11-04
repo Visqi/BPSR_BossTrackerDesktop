@@ -139,15 +139,17 @@ npm install
 # Development mode with hot reload
 npm run dev
 
-# Build portable executable (no installation needed)
+# Build portable executable (local build, no publishing)
 npm run build:portable
 
-# Build NSIS installer
+# Build NSIS installer (local build, no publishing)
 npm run build:installer
 
-# Build both formats
+# Build both formats (local build, no publishing)
 npm run build
 ```
+
+**Note**: Local builds use `--publish never` flag. Publishing happens automatically via GitHub Actions.
 
 ### Build Output
 

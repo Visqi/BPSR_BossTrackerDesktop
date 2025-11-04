@@ -7,6 +7,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -31,10 +34,14 @@ jobs:
         shell: pwsh
 
       - name: Build Portable
-        run: npm run build:portable
+        run: npm run build:portable:publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Installer
-        run: npm run build:installer
+        run: npm run build:installer:publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: List dist contents
         run: dir dist
