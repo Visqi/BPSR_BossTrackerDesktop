@@ -48,9 +48,11 @@ const COLLECTIONS = {
 const EVENT_HANDLERS = {
   [SSE_EVENT_TYPES.MOB_HP_UPDATES]: {
     // Format: [mobId, channelNumber, hp]
+    // Example: ["g1vqd4mkcexkii7", 35, 0] = Mob ID, Channel 35, 0% HP
     parse: (data) => {
       if (Array.isArray(data) && data.length === 3) {
         const [mobId, channelNumber, hp] = data;
+        
         return {
           action: 'update',
           collection: COLLECTIONS.MOB_CHANNEL_STATUS,
@@ -62,6 +64,7 @@ const EVENT_HANDLERS = {
           }
         };
       }
+      
       return null;
     },
     description: 'HP update for a specific mob channel'

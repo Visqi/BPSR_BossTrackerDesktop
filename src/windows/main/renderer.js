@@ -230,6 +230,9 @@ async function init() {
   window.electronAPI.onConnectionError(handleConnectionError);
   window.electronAPI.onShowNotification(showNotification);
   
+  // Listen for realtime updates from sse-handler.js
+  window.addEventListener('realtime-update', handleRealtimeUpdate);
+  
   // Load subscribed bosses
   const subscribed = await window.electronAPI.getSubscribedBosses();
   subscribedBosses = new Set(subscribed);
@@ -316,6 +319,31 @@ function handleChannelUpdate(data) {
   updateLastUpdateTime();
   // Re-render just the affected boss
   renderBoss(data.bossId);
+}
+
+function handleRealtimeUpdate(event) {
+  const data = event.detail;
+  
+  // Handle different collections/actions
+  if (data.collection === 'mob_channel_status' && data.action === 'update') {
+    // HP Update event
+    const { mob, channel_number, last_hp, last_update } = data.record;
+    updateLastUpdateTime();
+    
+    // Send to main process to update stored data
+    window.electronAPI.updateChannelHP(mob, channel_number, last_hp, last_update)
+      .then(() => renderBoss(mob))
+      .catch(err => console.error('Error updating boss:', err));
+    
+  } else if (data.collection === 'mob_reset_events' && data.action === 'create') {
+    // Boss Reset event
+    const { mob } = data.record;
+    showToast('Boss Respawned', `All channels have been reset to 100% HP`);
+    renderBoss(mob);
+    
+  } else {
+    console.log('Unhandled realtime update:', data);
+  }
 }
 
 function handleBossReset(data) {
@@ -438,7 +466,6 @@ async function renderBoss(bossId) {
     // Check if channel details are currently open
     const channelDetails = document.getElementById(`channel-details-${bossId}`);
     const wasOpen = channelDetails && !channelDetails.classList.contains('hidden');
-    const scrollTop = channelDetails ? channelDetails.scrollTop : 0;
     
     // If channel details are open, only update the stats and preview pills (not the full grid)
     if (wasOpen) {
@@ -468,6 +495,7 @@ async function renderBoss(bossId) {
 // Update only the stats and preview pills without re-rendering the entire card
 async function updateBossCardStats(boss, bossId) {
   const channels = await window.electronAPI.getBossChannels(bossId) || [];
+  
   const aliveChannels = channels.filter(ch => ch.status === 'alive' && ch.hp > 0);
   const deadChannels = channels.filter(ch => ch.status === 'dead');
   
@@ -498,6 +526,39 @@ async function updateBossCardStats(boss, bossId) {
     }).join('') + (aliveChannels.length > 15 ? `<div class="channel-pill-more">+${aliveChannels.length - 15}</div>` : '');
     
     previewContainer.innerHTML = previewHTML;
+  }
+  
+  // IMPORTANT: Also update the channel grid if it's currently open!
+  const channelDetails = document.querySelector(`#channel-details-${bossId}`);
+  if (channelDetails && !channelDetails.classList.contains('hidden')) {
+    const channelGrid = channelDetails.querySelector('.channel-grid');
+    if (channelGrid) {
+      // Get all channel pill containers
+      const channelElements = channelGrid.querySelectorAll('.channel-pill-container');
+      
+      // Update each channel element
+      channelElements.forEach((element, index) => {
+        const channelNumber = index + 1; // Channels are 1-indexed
+        const channelData = channels.find(ch => ch.channelNumber === channelNumber);
+        
+        if (channelData) {
+          const hpBar = element.querySelector('.channel-pill-progress');
+          const isUnknown = channelData.status === 'unknown';
+          const isDead = !isUnknown && channelData.hp === 0;
+          const hp = isUnknown ? 0 : channelData.hp;
+          const statusClass = getChannelClass(hp);
+          const barWidth = isUnknown ? 0 : (isDead ? 100 : hp);
+          
+          if (hpBar) {
+            hpBar.className = `channel-pill-progress ${statusClass}${isUnknown ? ' unknown' : ''}`;
+            hpBar.style.width = `${barWidth}%`;
+          }
+          
+          // Update tooltip
+          element.title = `Channel ${channelNumber}: ${isUnknown ? 'Unknown Status' : hp + '% HP'}`;
+        }
+      });
+    }
   }
 }
 
@@ -1106,9 +1167,29 @@ function handleSSEMessage(eventType, dataString) {
       return;
     }
     
-    // Handle collection events
+    // NEW FORMAT: Event type is in the eventType parameter, data is the parsed array/object
+    // Example: eventType = "mob_hp_updates", data = ["mobId", 42, 10]
+    if (eventType && eventType !== '') {
+      // Access the centralized config
+      const { EVENT_HANDLERS } = window.API_CONFIG || {};
+      
+      if (EVENT_HANDLERS && EVENT_HANDLERS[eventType]) {
+        // Use the handler's parse function - pass the already-parsed data
+        const parsedData = EVENT_HANDLERS[eventType].parse(data);
+        
+        if (parsedData) {
+          // Dispatch as custom event
+          window.dispatchEvent(new CustomEvent('realtime-update', { 
+            detail: parsedData
+          }));
+        }
+      }
+      return;
+    }
+    
+    // OLD FORMAT: Handle collection events (backwards compatibility)
     if (data.action && data.record) {
-      console.log(`📡 Collection event: ${data.record.collectionName} - ${data.action}`);
+      console.log(`📡 Old format collection event: ${data.record.collectionName} - ${data.action}`);
       handleRealtimeSSEEvent(data);
     }
   } catch (error) {

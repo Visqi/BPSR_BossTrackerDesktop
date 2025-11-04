@@ -1,10 +1,14 @@
 const { autoUpdater } = require('electron-updater');
-const { dialog } = require('electron');
+const { dialog, app } = require('electron');
 
 class AutoUpdater {
   constructor(mainWindow) {
     this.mainWindow = mainWindow;
     this.updateAvailable = false;
+    
+    // Enable auto-updates for all builds (including portable)
+    console.log('Auto-updater initialized for all build types');
+    
     this.setupAutoUpdater();
   }
 

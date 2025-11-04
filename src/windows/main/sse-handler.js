@@ -76,10 +76,32 @@ export function connectRealtimeSSE() {
         return;
       }
       
-      console.log('📨 SSE Event received:', data);
+      console.log('📨 SSE Event received - Type:', data.type, 'Data:', data.data);
       
-      // Dispatch custom event to notify the main renderer
-      window.dispatchEvent(new CustomEvent('realtime-update', { detail: data }));
+      // Check if this event has a handler
+      const eventType = data.type;
+      console.log('🔍 Looking for handler:', eventType);
+      console.log('🔍 Available handlers:', Object.keys(EVENT_HANDLERS));
+      
+      if (eventType && EVENT_HANDLERS[eventType]) {
+        console.log(`🔄 Processing ${eventType} with registered handler...`);
+        
+        // Use the handler's parse function to transform the data
+        const parsedData = EVENT_HANDLERS[eventType].parse(data.data);
+        
+        if (parsedData) {
+          console.log(`✓ Parsed ${eventType}:`, parsedData);
+          
+          // Dispatch as custom event for renderer to handle
+          window.dispatchEvent(new CustomEvent('realtime-update', { 
+            detail: parsedData
+          }));
+        }
+      } else {
+        // Generic event without specific handler
+        console.log('🔔 Generic event (no handler):', data);
+        window.dispatchEvent(new CustomEvent('realtime-update', { detail: data }));
+      }
     } catch (error) {
       console.error('Error parsing SSE event:', error);
     }

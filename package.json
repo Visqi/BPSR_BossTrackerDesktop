@@ -33,7 +33,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://yourdomain.com/updates"
+        "url": "https://bpsr.goobiverse.com/updates"
       }
     ],
     "win": {
