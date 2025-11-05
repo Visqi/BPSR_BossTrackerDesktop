@@ -1,6 +1,6 @@
 {
   "name": "blue-protocol-star-resonance",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Blue Protocol Star Resonance - Boss Timer and Overlay Tool",
   "main": "src/main.js",
   "scripts": {
