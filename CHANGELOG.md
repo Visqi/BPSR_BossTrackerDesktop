@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.4] - 2025-11-07
+
+### Changed
+- Updated API routes to match new backend structure
+- Boss data endpoint now includes type filter and map expansion
+- Magical creature data is now loaded separately with dedicated API route
+- Channel status loading now uses mob ID filters with pagination
+  - Bosses: 5 pages with boss-specific filter
+  - Magical Creatures: 3 pages with creature-specific filter
+- Improved channel status loading efficiency with targeted mob filters
+
+### Fixed
+- API routes updated to work with new PocketBase backend structure
+- Magical creatures now properly loaded alongside bosses
+- Fixed 403 Forbidden errors by adding required browser headers (User-Agent, Origin, Referer)
+- API requests now include proper URL encoding for filters
+- Added HTTP status code validation for better error handling
+
 ## [1.0.3] - 2025-11-05
 
 ### Fixed

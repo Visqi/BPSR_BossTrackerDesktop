@@ -23,61 +23,59 @@ class APIService extends EventEmitter {
    * Fetch boss data from the API
    */
   async loadBossData() {
-    return new Promise((resolve, reject) => {
-      // Load both bosses AND magical creatures (remove type filter or use type='boss' OR type='magical-creature')
-      const url = `${this.baseURL}/collections/mobs/records?page=1&perPage=500&skipTotal=1&sort=uid&expand=map`;
-      
-      console.log('Fetching boss and magical creature data...');
-      
-      https.get(url, (res) => {
-        let data = '';
-
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-
-        res.on('end', () => {
-          try {
-            const parsed = JSON.parse(data);
-            this.bossData = parsed.items.map(boss => ({
-              id: boss.id,
-              uid: boss.uid,
-              name: boss.name,
-              type: boss.type,
-              totalChannels: boss.expand?.map?.total_channels || 50,
-              map: boss.expand?.map ? {
-                id: boss.expand.map.id,
-                name: boss.expand.map.name,
-                totalChannels: boss.expand.map.total_channels,
-                uid: boss.expand.map.uid
-              } : null
-            }));
-            
-            const bosses = this.bossData.filter(m => m.type === 'boss');
-            const creatures = this.bossData.filter(m => m.type === 'magical_creature' || m.type === 'magical-creature');
-            console.log(`Loaded ${bosses.length} bosses and ${creatures.length} magical creatures`);
-            console.log('Boss data types:', [...new Set(this.bossData.map(m => m.type))]);
-            
-            this.emit('boss-data-loaded', this.bossData);
-            
-            // After loading bosses, load channel status for all
-            this.loadAllChannelStatus().then(() => {
-              resolve(this.bossData);
-            }).catch(reject);
-          } catch (error) {
-            console.error('Error parsing boss data:', error);
-            reject(error);
-          }
-        });
-      }).on('error', (error) => {
-        console.error('Error fetching boss data:', error);
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Load bosses - use proper URL encoding
+        const bossFilter = encodeURIComponent("type = 'boss'");
+        const bossUrl = `${this.baseURL}/collections/mobs/records?page=1&perPage=500&skipTotal=1&filter=${bossFilter}&sort=uid&expand=map`;
+        console.log('Fetching boss data from:', bossUrl);
+        const bossData = await this.fetchPage(bossUrl);
+        const bossesRaw = JSON.parse(bossData);
+        
+        // Load magical creatures - use proper URL encoding
+        const creatureFilter = encodeURIComponent("type = 'magical_creature'");
+        const creatureUrl = `${this.baseURL}/collections/mobs/records?page=1&perPage=500&skipTotal=1&filter=${creatureFilter}&sort=uid&expand=map`;
+        console.log('Fetching magical creature data from:', creatureUrl);
+        const creatureData = await this.fetchPage(creatureUrl);
+        const creaturesRaw = JSON.parse(creatureData);
+        
+        // Combine both types
+        const allMobs = [...bossesRaw.items, ...creaturesRaw.items];
+        
+        this.bossData = allMobs.map(boss => ({
+          id: boss.id,
+          uid: boss.uid,
+          name: boss.name,
+          type: boss.type,
+          totalChannels: boss.expand?.map?.total_channels || 50,
+          map: boss.expand?.map ? {
+            id: boss.expand.map.id,
+            name: boss.expand.map.name,
+            totalChannels: boss.expand.map.total_channels,
+            uid: boss.expand.map.uid
+          } : null
+        }));
+        
+        const bosses = this.bossData.filter(m => m.type === 'boss');
+        const creatures = this.bossData.filter(m => m.type === 'magical_creature' || m.type === 'magical-creature');
+        console.log(`Loaded ${bosses.length} bosses and ${creatures.length} magical creatures`);
+        console.log('Boss data types:', [...new Set(this.bossData.map(m => m.type))]);
+        
+        this.emit('boss-data-loaded', this.bossData);
+        
+        // After loading bosses, load channel status for all
+        await this.loadAllChannelStatus();
+        resolve(this.bossData);
+      } catch (error) {
+        console.error('Error loading mob data:', error);
         reject(error);
-      });
+      }
     });
   }
 
   /**
-   * Load channel status for all bosses with pagination
+   * Load channel status for all bosses and magical creatures with pagination
+   * Uses the new API routes with mob ID filters
    */
   async loadAllChannelStatus() {
     console.log('Fetching all channel status...');
@@ -85,44 +83,100 @@ class APIService extends EventEmitter {
     // Clear existing channel status
     this.channelStatusMap.clear();
     
-    let page = 1;
-    let hasMore = true;
+    // Build the mob filter based on loaded boss data
+    if (!this.bossData || this.bossData.length === 0) {
+      console.warn('No boss data available to build filter');
+      return Promise.resolve();
+    }
+    
+    // Separate bosses and magical creatures
+    const bosses = this.bossData.filter(m => m.type === 'boss');
+    const creatures = this.bossData.filter(m => m.type === 'magical_creature' || m.type === 'magical-creature');
+    
     let totalLoaded = 0;
     
     try {
-      while (hasMore) {
-        // PocketBase max is 500 per page for optimal performance
-        const url = `${this.baseURL}/collections/mob_channel_status/records?page=${page}&perPage=500&skipTotal=0`;
+      // Load boss channel status (5 pages)
+      if (bosses.length > 0) {
+        const bossIds = bosses.map(boss => boss.id);
+        // Build filter: mob = 'id1' || mob = 'id2' || ...
+        const filterParts = bossIds.map(id => `mob = '${id}'`).join(' || ');
+        const bossFilter = encodeURIComponent(filterParts);
         
-        const data = await this.fetchPage(url);
-        const parsed = JSON.parse(data);
-        
-        // Store each channel status
-        parsed.items.forEach(item => {
-          const key = `${item.mob}_${item.channel_number}`;
-          const hp = item.last_hp || 0;
-          const lastUpdate = item.last_update || item.updated;
+        console.log(`Loading channel status for ${bosses.length} bosses...`);
+        for (let page = 1; page <= 5; page++) {
+          const url = `${this.baseURL}/collections/mob_channel_status/records?page=${page}&perPage=500&skipTotal=true&filter=${bossFilter}`;
           
-          this.channelStatusMap.set(key, {
-            bossId: item.mob,
-            channelNumber: item.channel_number,
-            hp: hp,
-            lastUpdate: lastUpdate,
-            status: this.getChannelStatus(hp, lastUpdate)
+          const data = await this.fetchPage(url);
+          const parsed = JSON.parse(data);
+          
+          // Store each channel status
+          parsed.items.forEach(item => {
+            const key = `${item.mob}_${item.channel_number}`;
+            const hp = item.last_hp || 0;
+            const lastUpdate = item.last_update || item.updated;
+            
+            this.channelStatusMap.set(key, {
+              bossId: item.mob,
+              channelNumber: item.channel_number,
+              hp: hp,
+              lastUpdate: lastUpdate,
+              status: this.getChannelStatus(hp, lastUpdate)
+            });
           });
-        });
+          
+          totalLoaded += parsed.items.length;
+          console.log(`Loaded boss page ${page}: ${parsed.items.length} records (total: ${totalLoaded})`);
+          
+          // If we get less than 500 items, we've reached the end
+          if (parsed.items.length < 500) {
+            break;
+          }
+        }
+      }
+      
+      // Load magical creature channel status (3 pages)
+      if (creatures.length > 0) {
+        const creatureIds = creatures.map(c => c.id);
+        // Build filter: mob = 'id1' || mob = 'id2' || ...
+        const filterParts = creatureIds.map(id => `mob = '${id}'`).join(' || ');
+        const creatureFilter = encodeURIComponent(filterParts);
         
-        totalLoaded += parsed.items.length;
-        console.log(`Loaded page ${page}: ${parsed.items.length} records (total: ${totalLoaded}/${parsed.totalItems || '?'})`);
-        
-        // Check if there are more pages
-        hasMore = parsed.items.length === 500 && totalLoaded < (parsed.totalItems || 0);
-        page++;
+        console.log(`Loading channel status for ${creatures.length} magical creatures...`);
+        for (let page = 1; page <= 3; page++) {
+          const url = `${this.baseURL}/collections/mob_channel_status/records?page=${page}&perPage=500&skipTotal=true&filter=${creatureFilter}`;
+          
+          const data = await this.fetchPage(url);
+          const parsed = JSON.parse(data);
+          
+          // Store each channel status
+          parsed.items.forEach(item => {
+            const key = `${item.mob}_${item.channel_number}`;
+            const hp = item.last_hp || 0;
+            const lastUpdate = item.last_update || item.updated;
+            
+            this.channelStatusMap.set(key, {
+              bossId: item.mob,
+              channelNumber: item.channel_number,
+              hp: hp,
+              lastUpdate: lastUpdate,
+              status: this.getChannelStatus(hp, lastUpdate)
+            });
+          });
+          
+          totalLoaded += parsed.items.length;
+          console.log(`Loaded creature page ${page}: ${parsed.items.length} records (total: ${totalLoaded})`);
+          
+          // If we get less than 500 items, we've reached the end
+          if (parsed.items.length < 500) {
+            break;
+          }
+        }
       }
       
       // Log statistics
       const uniqueBosses = new Set(Array.from(this.channelStatusMap.values()).map(c => c.bossId));
-      console.log(`✓ Loaded ${this.channelStatusMap.size} channel statuses for ${uniqueBosses.size} bosses/creatures`);
+      console.log(`✓ Loaded ${this.channelStatusMap.size} channel statuses for ${uniqueBosses.size} mobs (${bosses.length} bosses + ${creatures.length} creatures)`);
       
       this.emit('channel-data-loaded');
       return Promise.resolve();
@@ -133,11 +187,33 @@ class APIService extends EventEmitter {
   }
   
   /**
-   * Helper function to fetch a single page
+   * Helper function to fetch a single page with proper headers
    */
   fetchPage(url) {
     return new Promise((resolve, reject) => {
-      https.get(url, (res) => {
+      const options = {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36',
+          'Accept': '*/*',
+          'Accept-Language': 'en-US',
+          'Origin': 'https://bptimer.com',
+          'Referer': 'https://bptimer.com/'
+        }
+      };
+      
+      https.get(url, options, (res) => {
+        const { statusCode } = res;
+        
+        // Check for HTTP errors
+        if (statusCode !== 200) {
+          let error = new Error(`Request Failed.\nStatus Code: ${statusCode}\nURL: ${url}`);
+          console.error(error.message);
+          // Consume response data to free up memory
+          res.resume();
+          reject(error);
+          return;
+        }
+        
         let data = '';
         
         res.on('data', (chunk) => {
@@ -148,6 +224,7 @@ class APIService extends EventEmitter {
           resolve(data);
         });
       }).on('error', (error) => {
+        console.error('HTTPS request error:', error.message, 'URL:', url);
         reject(error);
       });
     });
