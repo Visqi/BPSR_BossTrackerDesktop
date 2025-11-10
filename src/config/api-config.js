@@ -27,26 +27,46 @@ const COLLECTIONS = {
 
 const EVENT_HANDLERS = {
   [SSE_EVENT_TYPES.MOB_HP_UPDATES]: {
-    // Example: ["g1vqd4mkcexkii7", 35, 0] = Mob ID, Channel 35, 0% HP
+    // New format: Array of updates [[mobId, channel, hp, extra], [mobId, channel, hp, extra], ...]
+    // Example: [["2p85mgkxeou96jf",176,0,null],["2p85mgkxeou96jf",175,80,null],["oej5xgi3vn0quou",80,45,null]]
     parse: (data) => {
-      if (Array.isArray(data) && data.length === 3) {
-        const [mobId, channelNumber, hp] = data;
-        
-        return {
-          action: 'update',
-          collection: COLLECTIONS.MOB_CHANNEL_STATUS,
-          record: {
-            mob: mobId,
-            channel_number: channelNumber,
-            last_hp: hp,
-            last_update: new Date().toISOString()
-          }
-        };
+      // Check if data is an array of arrays (multi-dimensional)
+      if (Array.isArray(data) && data.length > 0) {
+        // Check if first element is an array (multi-dimensional format)
+        if (Array.isArray(data[0])) {
+          // Multi-dimensional: return array of updates
+          return data.map(update => {
+            const [mobId, channelNumber, hp] = update;
+            return {
+              action: 'update',
+              collection: COLLECTIONS.MOB_CHANNEL_STATUS,
+              record: {
+                mob: mobId,
+                channel_number: channelNumber,
+                last_hp: hp,
+                last_update: new Date().toISOString()
+              }
+            };
+          });
+        } else if (data.length === 3 || data.length === 4) {
+          // Legacy single update format: [mobId, channel, hp] or [mobId, channel, hp, extra]
+          const [mobId, channelNumber, hp] = data;
+          return {
+            action: 'update',
+            collection: COLLECTIONS.MOB_CHANNEL_STATUS,
+            record: {
+              mob: mobId,
+              channel_number: channelNumber,
+              last_hp: hp,
+              last_update: new Date().toISOString()
+            }
+          };
+        }
       }
       
       return null;
     },
-    description: 'HP update for a specific mob channel'
+    description: 'HP update for mob channels (supports both single and multi-dimensional updates)'
   },
   
   [SSE_EVENT_TYPES.MOB_RESETS]: {

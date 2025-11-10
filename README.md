@@ -2,7 +2,7 @@
 
 A real-time boss tracking overlay application for Blue Protocol: Star Resonance, featuring live HP updates, channel monitoring, and an always-on-top overlay for in-game use.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Electron](https://img.shields.io/badge/electron-28.0.0-47848f)
 [![Build and Release](https://github.com/Visqi/BPSR_BossTrackerDesktop/actions/workflows/build-release.yml/badge.svg)](https://github.com/Visqi/BPSR_BossTrackerDesktop/actions/workflows/build-release.yml)

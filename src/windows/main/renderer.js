@@ -1178,10 +1178,20 @@ function handleSSEMessage(eventType, dataString) {
         const parsedData = EVENT_HANDLERS[eventType].parse(data);
         
         if (parsedData) {
-          // Dispatch as custom event
-          window.dispatchEvent(new CustomEvent('realtime-update', { 
-            detail: parsedData
-          }));
+          // Check if parsedData is an array (multi-dimensional updates)
+          if (Array.isArray(parsedData) && parsedData.length > 0 && parsedData[0].action) {
+            // Multiple updates - dispatch each one
+            parsedData.forEach(update => {
+              window.dispatchEvent(new CustomEvent('realtime-update', { 
+                detail: update
+              }));
+            });
+          } else {
+            // Single update - dispatch as before
+            window.dispatchEvent(new CustomEvent('realtime-update', { 
+              detail: parsedData
+            }));
+          }
         }
       }
       return;

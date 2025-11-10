@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.0.5] - 2025-11-10
+
+### Changed
+- Updated SSE event handler to support multi-dimensional HP updates
+- `mob_hp_updates` now processes batch updates in a single event
+- Improved real-time update performance by handling multiple channel updates simultaneously
+
+### Fixed
+- Fixed parsing of new multi-dimensional `mob_hp_updates` format: `[["mobId",channel,hp,null],...]`
+- Backwards compatibility maintained for legacy single-update format
+
 ## [1.0.4] - 2025-11-07
 
 ### Changed
