@@ -134,6 +134,17 @@
     </div>
   </div>
 
+  <!-- Map Image Modal -->
+  <div id="mapModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button class="modal-close-btn" id="closeMapModal" title="Close">✕</button>
+      <div class="modal-image-container">
+        <img id="modalMapImage" src="" alt="Spawn Map" />
+      </div>
+      <div class="modal-title" id="modalMapTitle">Spawn Map</div>
+    </div>
+  </div>
+
   <!-- Load config first to populate window.API_CONFIG -->
   <script src="../../config/api-config.js"></script>
   <script type="module" src="sse-handler.js"></script>

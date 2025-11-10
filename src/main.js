@@ -290,21 +290,33 @@ ipcMain.handle('get-bosses', () => {
   return [];
 });
 
-ipcMain.handle('update-channel-hp', (event, bossId, channelNumber, hp, lastUpdate) => {
+ipcMain.handle('update-channel-hp', (event, bossId, channelNumber, hp, lastUpdate, locationImage, locationId) => {
   if (apiService) {
     const key = `${bossId}_${channelNumber}`;
     const existingData = apiService.channelStatusMap.get(key);
     
     // Update the channel data in-memory
-    apiService.channelStatusMap.set(key, {
+    const channelData = {
       bossId,
       channelNumber,
       hp,
       lastUpdate,
       status: apiService.getChannelStatus(hp, lastUpdate)
-    });
+    };
     
-    console.log(`Updated channel ${channelNumber} for boss ${bossId}: HP ${hp}%`);
+    // Add location_image if present (for magical creatures)
+    if (locationImage != null) {
+      channelData.locationImage = locationImage;
+    }
+    
+    // Add location_id if present (for magical creatures with location-based spawns)
+    if (locationId != null) {
+      channelData.locationId = locationId;
+    }
+    
+    apiService.channelStatusMap.set(key, channelData);
+    
+    console.log(`Updated channel ${channelNumber} for boss ${bossId}: HP ${hp}%${locationId != null ? ' (location: ' + locationId + ')' : ''}`);
     return true;
   }
   return false;
@@ -394,6 +406,12 @@ ipcMain.handle('install-update', () => {
 
 ipcMain.handle('get-app-version', () => {
   return app.getVersion();
+});
+
+// Open external URL in default browser
+ipcMain.handle('open-external', async (event, url) => {
+  const { shell } = require('electron');
+  await shell.openExternal(url);
 });
 
 // Send notifications for subscribed bosses with low HP channels

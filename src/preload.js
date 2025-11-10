@@ -25,7 +25,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAliveChannels: (bossId) => ipcRenderer.invoke('get-alive-channels', bossId),
   getBosses: () => ipcRenderer.invoke('get-bosses'),
   requestInitialData: () => ipcRenderer.invoke('request-initial-data'),
-  updateChannelHP: (bossId, channelNumber, hp, lastUpdate) => ipcRenderer.invoke('update-channel-hp', bossId, channelNumber, hp, lastUpdate),
+  updateChannelHP: (bossId, channelNumber, hp, lastUpdate, locationImage, locationId) => ipcRenderer.invoke('update-channel-hp', bossId, channelNumber, hp, lastUpdate, locationImage, locationId),
+  
+  // External links
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
   
   // Event listeners for realtime updates
   onBossDataLoaded: (callback) => {

@@ -327,11 +327,11 @@ function handleRealtimeUpdate(event) {
   // Handle different collections/actions
   if (data.collection === 'mob_channel_status' && data.action === 'update') {
     // HP Update event
-    const { mob, channel_number, last_hp, last_update } = data.record;
+    const { mob, channel_number, last_hp, last_update, location_image, location_id } = data.record;
     updateLastUpdateTime();
     
     // Send to main process to update stored data
-    window.electronAPI.updateChannelHP(mob, channel_number, last_hp, last_update)
+    window.electronAPI.updateChannelHP(mob, channel_number, last_hp, last_update, location_image, location_id)
       .then(() => renderBoss(mob))
       .catch(err => console.error('Error updating boss:', err));
     
@@ -657,9 +657,27 @@ function renderAllChannels(bossId, channels, totalChannels) {
     // Dead channels (0% HP) show full red bar, unknown show empty dark bar
     const barWidth = isUnknown ? 0 : (isDead ? 100 : hp);
     
+    // Get location name if available (for magical creatures with location-based spawns)
+    const locationId = ch.locationId || ch.location_id;
+    const locationName = locationId && window.API_CONFIG?.getLocationName 
+      ? window.API_CONFIG.getLocationName(bossId, locationId) 
+      : null;
+    
+    // Build tooltip with HP and location info (SHORT NAMES only)
+    const tooltipParts = [`Channel ${ch.channelNumber}`];
+    if (!isUnknown) {
+      tooltipParts.push(`${hp}% HP`);
+    } else {
+      tooltipParts.push('Unknown Status');
+    }
+    if (locationName) {
+      tooltipParts.push(locationName); // Just the short name, no "Location:" prefix
+    }
+    const tooltip = tooltipParts.join(' • ');
+    
     return `
     <div class="channel-pill-container" onclick="event.stopPropagation()" 
-         title="Channel ${ch.channelNumber}: ${isUnknown ? 'Unknown Status' : hp + '% HP'}">
+         title="${tooltip}">
       <div class="channel-pill-number">${ch.channelNumber}</div>
       <div class="channel-pill-bar">
         <div class="channel-pill-progress ${statusClass} ${isUnknown ? 'unknown' : ''}" 
@@ -908,6 +926,9 @@ async function renderCreatureCardAsync(creature) {
   // Get creature image path
   const creatureImagePath = getBossImagePath(creature.name, 'magical-creature');
   
+  // Get map URL using API_CONFIG helper function
+  const mapUrl = window.API_CONFIG?.getMapUrl ? window.API_CONFIG.getMapUrl(creature.id) : null;
+  
   return `
     <div class="boss-card ${isSubscribed ? 'subscribed' : ''}" id="boss-card-${creature.id}">
       <div class="boss-header">
@@ -918,9 +939,12 @@ async function renderCreatureCardAsync(creature) {
           <h3 class="boss-name">${creature.name}</h3>
           <div class="boss-map">${creature.map?.name || 'Unknown Map'}</div>
         </div>
-        <button class="subscribe-btn ${isSubscribed ? 'subscribed' : ''}" id="subscribe-${creature.id}" title="${isSubscribed ? 'Unsubscribe' : 'Subscribe for notifications'}">
-          ${isSubscribed ? '★' : '☆'}
-        </button>
+        <div class="boss-header-actions">
+          ${mapUrl ? `<button class="map-btn" onclick="window.showMapModal('${mapUrl}', '${creature.name} Spawn Map')" title="View Spawn Map">🗺️</button>` : ''}
+          <button class="subscribe-btn ${isSubscribed ? 'subscribed' : ''}" id="subscribe-${creature.id}" title="${isSubscribed ? 'Unsubscribe' : 'Subscribe for notifications'}">
+            ${isSubscribed ? '★' : '☆'}
+          </button>
+        </div>
       </div>
       
       <div class="channel-stats">
@@ -943,10 +967,21 @@ async function renderCreatureCardAsync(creature) {
           <div class="channel-pills-preview">
           ${topAliveChannels.map(ch => {
             const statusClass = getChannelClass(ch.hp);
+            
+            // Get location name if available
+            const locationId = ch.locationId || ch.location_id;
+            const locationName = locationId && window.API_CONFIG?.getLocationName 
+              ? window.API_CONFIG.getLocationName(creature.id, locationId) 
+              : null;
+            
+            const tooltip = locationName 
+              ? `Channel ${ch.channelNumber}: ${ch.hp}% HP • ${locationName}`
+              : `Channel ${ch.channelNumber}: ${ch.hp}% HP`;
+            
             return `
             <div class="channel-pill-container-small" 
                  onclick="event.stopPropagation()"
-                 title="Channel ${ch.channelNumber}: ${ch.hp}% HP">
+                 title="${tooltip}">
               <div class="channel-pill-number-small">${ch.channelNumber}</div>
               <div class="channel-pill-bar-small">
                 <div class="channel-pill-progress ${statusClass}" style="width: ${ch.hp}%"></div>
@@ -1542,5 +1577,71 @@ window.electronAPI.onUpdateError((error) => {
 // Initialize version display
 loadAppVersion();
 
+// ============ MAP MODAL FUNCTIONS ============
+
+function showMapModal(imageUrl, title) {
+  const modal = document.getElementById('mapModal');
+  const modalImage = document.getElementById('modalMapImage');
+  const modalTitle = document.getElementById('modalMapTitle');
+  
+  if (!modal || !modalImage || !modalTitle) {
+    console.error('Map modal elements not found');
+    return;
+  }
+  
+  // Set image and title
+  modalImage.src = imageUrl;
+  modalTitle.textContent = title;
+  
+  // Show modal
+  modal.classList.remove('hidden');
+  
+  // Prevent body scroll when modal is open
+  document.body.style.overflow = 'hidden';
+}
+
+function closeMapModal() {
+  const modal = document.getElementById('mapModal');
+  if (!modal) return;
+  
+  modal.classList.add('hidden');
+  
+  // Restore body scroll
+  document.body.style.overflow = '';
+}
+
+// Set up modal event listeners when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  const closeModalBtn = document.getElementById('closeMapModal');
+  const modal = document.getElementById('mapModal');
+  
+  // Close button
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', closeMapModal);
+  }
+  
+  // Click outside modal to close
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeMapModal();
+      }
+    });
+  }
+  
+  // ESC key to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('mapModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        closeMapModal();
+      }
+    }
+  });
+});
+
+// Make functions globally accessible
+window.showMapModal = showMapModal;
+window.closeMapModal = closeMapModal;
 
 

@@ -116,13 +116,25 @@ class APIService extends EventEmitter {
             const hp = item.last_hp || 0;
             const lastUpdate = item.last_update || item.updated;
             
-            this.channelStatusMap.set(key, {
+            const channelData = {
               bossId: item.mob,
               channelNumber: item.channel_number,
               hp: hp,
               lastUpdate: lastUpdate,
               status: this.getChannelStatus(hp, lastUpdate)
-            });
+            };
+            
+            // Add location_image if present (for magical creatures)
+            if (item.location_image != null) {
+              channelData.locationImage = item.location_image;
+            }
+            
+            // Add location_id if present (for magical creatures with location-based spawns)
+            if (item.location_id != null) {
+              channelData.locationId = item.location_id;
+            }
+            
+            this.channelStatusMap.set(key, channelData);
           });
           
           totalLoaded += parsed.items.length;
@@ -155,13 +167,25 @@ class APIService extends EventEmitter {
             const hp = item.last_hp || 0;
             const lastUpdate = item.last_update || item.updated;
             
-            this.channelStatusMap.set(key, {
+            const channelData = {
               bossId: item.mob,
               channelNumber: item.channel_number,
               hp: hp,
               lastUpdate: lastUpdate,
               status: this.getChannelStatus(hp, lastUpdate)
-            });
+            };
+            
+            // Add location_image if present (for magical creatures)
+            if (item.location_image != null) {
+              channelData.locationImage = item.location_image;
+            }
+            
+            // Add location_id if present (for magical creatures with location-based spawns)
+            if (item.location_id != null) {
+              channelData.locationId = item.location_id;
+            }
+            
+            this.channelStatusMap.set(key, channelData);
           });
           
           totalLoaded += parsed.items.length;
@@ -577,15 +601,22 @@ class APIService extends EventEmitter {
       const hp = record.last_hp || 0;
       const lastUpdate = record.last_update || record.updated;
       
-      this.channelStatusMap.set(key, {
+      const channelData = {
         bossId: record.mob,
         channelNumber: record.channel_number,
         hp: hp,
         lastUpdate: lastUpdate,
         status: this.getChannelStatus(hp, lastUpdate)
-      });
+      };
       
-      console.log(`Channel ${key} updated: ${hp}% HP`);
+      // Add location_image if present (for magical creatures)
+      if (record.location_image != null) {
+        channelData.locationImage = record.location_image;
+      }
+      
+      this.channelStatusMap.set(key, channelData);
+      
+      console.log(`Channel ${key} updated: ${hp}% HP${record.location_image != null ? ' (location: ' + record.location_image + ')' : ''}`);
     }
 
     // Emit update event
